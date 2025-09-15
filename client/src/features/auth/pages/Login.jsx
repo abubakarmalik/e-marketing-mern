@@ -2,7 +2,6 @@ import { useState } from 'react';
 import logo from '../../../assets/megaphone.png';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../authSlice';
-import { selectIsAuthenticated, selectCurrentUser } from '../authSlice';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -13,9 +12,7 @@ const Login = () => {
   });
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const isAuthenticated = useSelector(selectIsAuthenticated);
   const loading = useSelector((state) => state.auth.loading);
-  const error = useSelector((state) => state.auth.error);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -25,11 +22,15 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (loading) return;
-    dispatch(loginUser(formValues)).then((res) => {
-      if (res.meta.requestStatus === 'fulfilled') {
-        navigate('/dashboard'); // redirect after login
-      }
-    });
+
+    dispatch(loginUser(formValues))
+      .unwrap()
+      .then(() => {
+        navigate('/dashboard');
+      })
+      .catch((err) => {
+        console.error('Login failed:', err);
+      });
   };
 
   return (
@@ -122,7 +123,6 @@ const Login = () => {
               </button>
             </div>
           </div>
-          {error && <div className="text-sm text-red-600">{error}</div>}
           <button
             type="submit"
             disabled={loading}
