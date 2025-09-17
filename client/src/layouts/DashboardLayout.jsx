@@ -6,6 +6,7 @@ import Dashboard from '../features/dashboard/pages/Dashboard';
 import Contact from '../features/contacts/pages/Contact';
 import Email from '../features/emails/pages/Email';
 import Setting from '../features/settings/pages/Setting';
+import TopHeading from '../components/TopHeading';
 
 const tabPages = [
   <Dashboard key="dashboard" />,

@@ -5,6 +5,7 @@ import {
   selectCurrentToken,
   logoutUser,
 } from '../features/auth/authSlice';
+import { FiLogOut, FiBell, FiSettings, FiChevronDown } from 'react-icons/fi';
 
 const Header = () => {
   const user = useSelector(selectCurrentUser);
@@ -21,38 +22,49 @@ const Header = () => {
     : 'U';
 
   return (
-    <header className="w-full flex items-center justify-between px-8 py-3 bg-gray-100 border-b border-gray-200">
-      {/* Left: User info */}
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 text-white font-bold text-lg">
-          {initials}
-        </div>
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-center">
-            <span className="font-semibold text-gray-800 truncate">
-              {user.name}
-            </span>
+    <header className="w-full bg-white border-b border-gray-200 shadow-sm">
+      <div className=" mx-auto px-4 py-1 sm:px-6 lg:px-12">
+        <div className="flex items-center justify-between h-16">
+          {/* Left: Logo */}
+          <div className="flex-shrink-0 p-1">
+            <img src={logo} alt="Logo" className="h-16 w-auto" />
+          </div>
+
+          {/* Right: User menu */}
+          <div className="flex items-center space-x-6">
+            {/* Avatar */}
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold ring-2 ring-white">
+                  {initials}
+                </div>
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-400 border-2 border-white"></div>
+              </div>
+              <div className="hidden md:flex flex-col">
+                <span className="text-sm font-medium text-gray-700">
+                  {user.name}
+                </span>
+                <span className="text-xs text-gray-500">Administrator</span>
+              </div>
+            </div>
+
+            {/* User Menu */}
+            <div className="relative flex items-center space-x-4">
+              {/* Sign Out Button */}
+              <button
+                onClick={() => {
+                  if (token) {
+                    dispatch(logoutUser(token));
+                  }
+                }}
+                className="hidden md:flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg border border-gray-200 transition-colors duration-150 ease-in-out"
+              >
+                <FiLogOut className="h-4 w-4" />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Center: Logo */}
-      <div className="flex-1 flex justify-center">
-        <img src={logo} alt="Logo" className="h-12 w-auto" />
-      </div>
-
-      {/* Right: Sign Out */}
-      <div className="flex items-center">
-        <button
-          className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold shadow hover:bg-gray-100 transition"
-          onClick={() => {
-            if (token) {
-              dispatch(logoutUser(token));
-            }
-          }}
-        >
-          Sign Out
-        </button>
       </div>
     </header>
   );
