@@ -12,6 +12,7 @@ app.use(
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   }),
 );
+app.use(express.urlencoded({ extended: true }));
 
 app.use(express.json());
 

@@ -6,10 +6,10 @@ const contactSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Phone number is required'],
       trim: true,
-      // store normalized E.164 (e.g. +923001234567)
       validate: {
-        validator: (v) => /^\+?[1-9]\d{1,14}$/.test(v),
-        message: (props) => `${props.value} is not a valid E.164 phone number!`,
+        validator: (v) => /^\d{11}$/.test(v),
+        message: (props) =>
+          `${props.value} is not a valid 11-digit phone number!`,
       },
     },
     sendStatus: {
@@ -25,9 +25,9 @@ const contactSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
-    note: { type: String, trim: true },
+    note: { type: String, trim: true, default: '' },
     lastMessageDate: { type: Date, default: null },
-    source: { type: String, trim: true },
+    source: { type: String, trim: true, default: '' },
   },
   { timestamps: true },
 );

@@ -27,12 +27,23 @@ const getCategories = async (req, res) => {
 
 const addCategory = async (req, res) => {
   try {
-    const { name, entityType = 'contact', isActive = true } = req.body;
+    const { name, entityType = 'contact' } = req.body;
+
+    // Check for duplicate name
+    const existingCategory = await Category.findOne({ name });
+
+    if (existingCategory) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category already exists',
+        data: null,
+        error: { code: 400, details: 'Duplicate category' },
+      });
+    }
 
     const category = await Category.create({
       name,
       entityType,
-      isActive,
     });
     res.status(201).json({
       success: true,

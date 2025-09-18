@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const categorySchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    isActive: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: true, index: true },
     entityType: {
       type: String,
       enum: ['contact', 'email', 'both'],
