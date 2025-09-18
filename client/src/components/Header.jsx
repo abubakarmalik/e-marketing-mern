@@ -5,7 +5,7 @@ import {
   selectCurrentToken,
   logoutUser,
 } from '../features/auth/authSlice';
-import { FiLogOut, FiBell, FiSettings, FiChevronDown } from 'react-icons/fi';
+import { FiLogOut } from 'react-icons/fi';
 
 const Header = () => {
   const user = useSelector(selectCurrentUser);

@@ -57,7 +57,7 @@ const authSlice = createSlice({
         state.user = data.user || null;
         state.token = data.token || null;
         state.isAuthenticated = Boolean(data.token);
-        toast.success(payload.message || 'Login successful!');
+        // toast.success(state.message);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -70,8 +70,6 @@ const authSlice = createSlice({
             action.payload.error?.details ||
             JSON.stringify(action.payload);
         }
-        state.error = message;
-        toast.error(message);
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;

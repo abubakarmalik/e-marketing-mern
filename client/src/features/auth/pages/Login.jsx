@@ -3,6 +3,7 @@ import logo from '../../../assets/megaphone.png';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../authSlice';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,14 +24,14 @@ const Login = () => {
     e.preventDefault();
     if (loading) return;
 
-    dispatch(loginUser(formValues))
-      .unwrap()
-      .then(() => {
+    toast.promise(dispatch(loginUser(formValues)).unwrap(), {
+      loading: 'Logging in...',
+      success: (data) => {
         navigate('/dashboard');
-      })
-      .catch((err) => {
-        console.error('Login failed:', err);
-      });
+        return data.message;
+      },
+      error: (err) => err,
+    });
   };
 
   return (

@@ -15,7 +15,7 @@ const contactSchema = new mongoose.Schema(
     sendStatus: {
       type: Number,
       enum: [0, 1, 2],
-      default: 0, // default to PENDING
+      default: 0,
       index: true,
     },
     isActive: { type: Boolean, default: true, index: true },
