@@ -1,11 +1,5 @@
 const mongoose = require('mongoose');
 
-const SEND_STATUS = Object.freeze({
-  PENDING: 0,
-  SENT: 1,
-  FAILED: 2,
-});
-
 const emailSchema = new mongoose.Schema(
   {
     email: {
@@ -22,8 +16,8 @@ const emailSchema = new mongoose.Schema(
     },
     sendStatus: {
       type: Number,
-      enum: Object.values(SEND_STATUS),
-      default: SEND_STATUS.PENDING,
+      enum: [0, 1, 2],
+      default: 0,
       index: true,
     },
     isActive: { type: Boolean, default: true, index: true },
@@ -59,7 +53,5 @@ emailSchema.pre('validate', async function (next) {
 // Indexes
 emailSchema.index({ email: 1 }, { unique: true });
 emailSchema.index({ category: 1, isActive: 1, sendStatus: 1 });
-
-Object.assign(emailSchema.statics, { SEND_STATUS });
 
 module.exports = mongoose.model('Email', emailSchema);

@@ -4,7 +4,6 @@ const Category = require('../../models/category.model');
 const getCategories = async (req, res) => {
   try {
     const { entityType } = req.query;
-    console.log(entityType);
 
     const filter = {};
     if (entityType) filter.entityType = entityType;
@@ -28,38 +27,10 @@ const getCategories = async (req, res) => {
 
 const addCategory = async (req, res) => {
   try {
-    const {
-      name,
-      parent = null,
-      entityType = 'contact',
-      isActive = true,
-    } = req.body;
-
-    // If parent provided, ensure it exists and is not creating a loop
-    if (parent) {
-      const parentCat = await Category.findById(parent);
-      if (!parentCat) {
-        return res.status(400).json({
-          success: false,
-          message: 'Parent category not found',
-          data: null,
-          error: { code: 400, details: 'Parent category not found' },
-        });
-      }
-      // prevent parent loop (direct cycle)
-      if (parentCat._id.equals(parentCat.parent)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid parent category',
-          data: null,
-          error: { code: 400, details: 'Invalid parent category' },
-        });
-      }
-    }
+    const { name, entityType = 'contact', isActive = true } = req.body;
 
     const category = await Category.create({
       name,
-      parent,
       entityType,
       isActive,
     });
@@ -82,7 +53,8 @@ const addCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, parent, entityType, isActive } = req.body;
+    const { name, entityType, isActive } = req.body;
+
     // Find the category to update
     const category = await Category.findById(id);
     if (!category) {
@@ -96,7 +68,6 @@ const updateCategory = async (req, res) => {
 
     // Update the category
     category.name = name || category.name;
-    category.parent = parent || category.parent;
     category.entityType = entityType || category.entityType;
     category.isActive = isActive !== undefined ? isActive : category.isActive;
 
@@ -117,4 +88,39 @@ const updateCategory = async (req, res) => {
   }
 };
 
-module.exports = { getCategories, addCategory, updateCategory };
+// Delete category
+
+const deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the category to delete
+    const category = await Category.findById(id);
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found',
+        data: null,
+        error: { code: 404, details: 'Category not found' },
+      });
+    }
+
+    // Delete the category
+    await category.deleteOne();
+    res.status(200).json({
+      success: true,
+      message: 'Category deleted',
+      data: null,
+      error: null,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+      data: null,
+      error: { code: 500, details: err.message },
+    });
+  }
+};
+
+module.exports = { getCategories, addCategory, updateCategory, deleteCategory };
