@@ -1,6 +1,6 @@
 import React from 'react';
 import TopHeading from '../../../components/TopHeading';
-import AddButton from '../../../components/AddButton';
+import AddButton from '../../../components/Button';
 
 const TopBar = () => {
   return (
@@ -9,7 +9,13 @@ const TopBar = () => {
         heading="Contacts Administration"
         subheading="Manage your contacts you can add, edit or delete contacts"
       />
-      <AddButton />
+      <div className="flex-col">
+        <AddButton
+          label="Add Contact"
+          onClick={() => console.log('Add contact')}
+        />
+        <AddButton label="Add Group" onClick={() => console.log('Add Group')} />
+      </div>
     </div>
   );
 };

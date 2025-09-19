@@ -84,7 +84,6 @@ const updateContact = async (req, res) => {
   // gettting id from params and number, isActive from body
   const { id } = req.params;
   const { number, category, isActive } = req.body;
-  console.log('Update Contact:', id, number, category, isActive); // debug
 
   try {
     // optional: normalize a blank/empty category to null
