@@ -1,8 +1,8 @@
 import React from 'react';
 import TopHeading from '../../../components/TopHeading';
-import AddButton from '../../../components/Button';
+import Button from '../../../components/Button';
 
-const TopBar = () => {
+const TopBar = ({ onAddContact, onAddGroup }) => {
   return (
     <div className="flex justify-between items-center border-b border-gray-200 bg-white px-4 py-4 mb-4">
       <TopHeading
@@ -10,11 +10,8 @@ const TopBar = () => {
         subheading="Manage your contacts you can add, edit or delete contacts"
       />
       <div className="flex-col">
-        <AddButton
-          label="Add Contact"
-          onClick={() => console.log('Add contact')}
-        />
-        <AddButton label="Add Group" onClick={() => console.log('Add Group')} />
+        <Button label="Add Contact" onClick={onAddContact} />
+        <Button label="Add Group" onClick={() => console.log('Add Group')} />
       </div>
     </div>
   );

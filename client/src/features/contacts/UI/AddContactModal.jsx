@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
-import Modal from './DynamicModel';
+import Modal from '../../../components/DynamicModel';
 
-const phoneRegex = /^\+?[0-9\s-]{7,20}$/; // simple, adjustable
+const phoneRegex = /^03\d{9}$/;
 
-const AddContactModal = () => {
+export default function AddContactModal({
+  open,
+  onClose,
+  onSave,
+  groups = [],
+}) {
   const [form, setForm] = useState({
     group: groups[0]?.value ?? 'Office',
     number: '',
@@ -37,7 +42,7 @@ const AddContactModal = () => {
       await onSave?.({
         number: form.number.trim(),
         group: form.group,
-        status: 'Active', // default; change if needed
+        status: 'Active', // default; adjust if needed
       });
       onClose?.();
     } finally {
@@ -48,10 +53,9 @@ const AddContactModal = () => {
   return (
     <Modal open={open} onClose={onClose} title="Add Contact">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Group */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Group
+            Select Group
           </label>
           <select
             className={`w-full px-3 py-2 rounded-lg border ${
@@ -73,16 +77,15 @@ const AddContactModal = () => {
           )}
         </div>
 
-        {/* Number */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Number
+            Enter Number
           </label>
           <div className="relative">
             <input
               type="tel"
               inputMode="tel"
-              placeholder="+92 3xx xxxxxx"
+              placeholder="e.g. 03001234567"
               className={`w-full pl-10 pr-3 py-2 rounded-lg border ${
                 errors.number
                   ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-300'
@@ -112,7 +115,6 @@ const AddContactModal = () => {
           )}
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
@@ -132,6 +134,4 @@ const AddContactModal = () => {
       </form>
     </Modal>
   );
-};
-
-export default AddContactModal;
+}

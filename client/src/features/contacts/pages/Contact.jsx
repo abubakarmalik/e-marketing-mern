@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import TopBar from './TopBar';
 import TotalContacts from '../../../components/TotalContacts';
 import ActiveCard from '../../../components/ActiveCard';
 import WrongCard from '../../../components/WrongCard';
 import CurrentProcess from '../../../components/CurrentProcess';
 import Filters from '../../../components/Filters';
 import ContactsTable from '../../../components/ContentTable';
+import TopBar from '../UI/TopBar';
+import AddContactModal from '../UI/AddContactModal';
 
 const Contact = () => {
   const statusData = {
@@ -36,13 +37,17 @@ const Contact = () => {
     { id: 3, number: '03068783233', group: 'General', status: 'Active' },
   ];
 
-
-
+  const groupOptions = [
+    { value: 'Office', label: 'Office' },
+    { value: 'Social', label: 'Social' },
+    { value: 'General', label: 'General' },
+  ];
   // ---------------- UI state ----------------
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('All');
   const [status, setStatus] = useState('All');
-
+  const [rows, setRows] = useState(allRows);
+  const [addOpen, setAddOpen] = useState(false);
 
   // Optional: debounce query (250ms)
   const [debouncedQuery, setDebouncedQuery] = useState(query);
@@ -50,6 +55,10 @@ const Contact = () => {
     const t = setTimeout(() => setDebouncedQuery(query), 250);
     return () => clearTimeout(t);
   }, [query]);
+
+  const handleSaveContact = async ({ number, group, status }) => {
+    setRows((prev) => [{ id: Date.now(), number, group, status }, ...prev]);
+  };
 
   // ---------------- Filtering ----------------
   const filteredRows = useMemo(() => {
@@ -69,11 +78,12 @@ const Contact = () => {
     });
   }, [allRows, debouncedQuery, group, status]);
 
-
-
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-4">
-      <TopBar />
+      <TopBar
+        onAddContact={() => setAddOpen(true)}
+        onAddGroup={() => console.log('Add Group')}
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
         <TotalContacts type="contacts" {...statusData.contacts} />
         <ActiveCard type="correct" {...statusData.correct} />
@@ -101,7 +111,12 @@ const Contact = () => {
         </div>
         <div className="basis-1/2 bg-white p-4">02</div>
       </div>
-     
+      <AddContactModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSave={handleSaveContact}
+        groups={groupOptions}
+      />
     </div>
   );
 };
