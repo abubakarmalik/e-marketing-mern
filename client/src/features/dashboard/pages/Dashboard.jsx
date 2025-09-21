@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../..//auth/authSlice';
-import TopHeading from '../../../components/TopHeading';
+import TopHeading from '../../../components/shared/TopHeading';
 import Overview from './Overview';
 import TotalContacts from '../../../components/TotalContacts';
 import TotalEmails from '../../../components/TotalEmails';

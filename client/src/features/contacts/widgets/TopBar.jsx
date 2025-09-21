@@ -1,6 +1,6 @@
 import React from 'react';
-import TopHeading from '../../../components/TopHeading';
-import Button from '../../../components/Button';
+import TopHeading from '../../../components/shared/TopHeading';
+import Button from '../../../components/shared/Button';
 
 const TopBar = ({ onAddContact, onAddGroup }) => {
   return (
@@ -11,7 +11,7 @@ const TopBar = ({ onAddContact, onAddGroup }) => {
       />
       <div className="flex-col">
         <Button label="Add Contact" onClick={onAddContact} />
-        <Button label="Add Group" onClick={() => console.log('Add Group')} />
+        <Button label="Add Group" onClick={onAddGroup} />
       </div>
     </div>
   );

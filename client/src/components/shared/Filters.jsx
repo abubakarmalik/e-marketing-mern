@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import Searchbar from './Searchbar';
-import SelectOptions from './SelectOptions';
+import Searchbar from '../Searchbar';
+import SelectOptions from '../SelectOptions';
 
 const Filters = ({
   query,
@@ -13,7 +13,7 @@ const Filters = ({
   const groups = [
     { value: 'All', label: 'All' },
     { value: 'Social', label: 'Social' },
-    { value: 'Ofice', label: 'Office' },
+    { value: 'Office', label: 'Office' },
     { value: 'General', label: 'General' },
   ];
   const statuses = [

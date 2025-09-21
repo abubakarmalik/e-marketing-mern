@@ -1,10 +1,10 @@
-import logo from '../assets/technogixt-logo.png';
+import logo from '../../assets/technogixt-logo.png';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectCurrentUser,
   selectCurrentToken,
   logoutUser,
-} from '../features/auth/authSlice';
+} from '../../features/auth/authSlice';
 import { FiLogOut } from 'react-icons/fi';
 
 const Header = () => {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Modal from '../../../components/DynamicModel';
+import Modal from '../../../components/shared/DynamicModel';
 
 const phoneRegex = /^03\d{9}$/;
 

@@ -3,10 +3,12 @@ import TotalContacts from '../../../components/TotalContacts';
 import ActiveCard from '../../../components/ActiveCard';
 import WrongCard from '../../../components/WrongCard';
 import CurrentProcess from '../../../components/CurrentProcess';
-import Filters from '../../../components/Filters';
-import ContactsTable from '../../../components/ContentTable';
-import TopBar from '../UI/TopBar';
-import AddContactModal from '../UI/AddContactModal';
+import ContactsTable from '../../../components/shared/ContentTable';
+import TopBar from '../widgets/TopBar';
+import AddContactModal from '../widgets/AddContactModal';
+import AddCategoryModel from '../../../components/shared/AddCategoryModel';
+import Filters from '../../../components/shared/Filters';
+import UploadSheet from '../../../components/shared/UploadSheet';
 
 const Contact = () => {
   const statusData = {
@@ -38,8 +40,9 @@ const Contact = () => {
   ];
 
   const groupOptions = [
-    { value: 'Office', label: 'Office' },
+    { value: 'All', label: 'All' },
     { value: 'Social', label: 'Social' },
+    { value: 'Ofice', label: 'Office' },
     { value: 'General', label: 'General' },
   ];
   // ---------------- UI state ----------------
@@ -48,6 +51,11 @@ const Contact = () => {
   const [status, setStatus] = useState('All');
   const [rows, setRows] = useState(allRows);
   const [addOpen, setAddOpen] = useState(false);
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+
+  const handleSaveCategory = async ({ name }) => {
+    setCategories((prev) => [...prev, name]);
+  };
 
   // Optional: debounce query (250ms)
   const [debouncedQuery, setDebouncedQuery] = useState(query);
@@ -82,7 +90,7 @@ const Contact = () => {
     <div className="px-4 sm:px-6 lg:px-8 py-4">
       <TopBar
         onAddContact={() => setAddOpen(true)}
-        onAddGroup={() => console.log('Add Group')}
+        onAddGroup={() => setAddCategoryOpen(true)}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
         <TotalContacts type="contacts" {...statusData.contacts} />
@@ -109,13 +117,20 @@ const Contact = () => {
           />
           ;
         </div>
-        <div className="basis-1/2 bg-white p-4">02</div>
+        <div className="basis-1/2 bg-white p-4">
+          <UploadSheet />
+        </div>
       </div>
       <AddContactModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
         onSave={handleSaveContact}
         groups={groupOptions}
+      />
+      <AddCategoryModel
+        open={addCategoryOpen}
+        onClose={() => setAddCategoryOpen(false)}
+        onSave={handleSaveCategory}
       />
     </div>
   );
