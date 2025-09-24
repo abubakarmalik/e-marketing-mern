@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
+import {
+  addCategory,
+  fetchCategories,
+} from '../../features/contacts/contactSlice';
 import Modal from './DynamicModel';
+import { toast } from 'react-hot-toast';
 
 export default function AddCategoryModel({ open, onClose, onSave }) {
   const [name, setName] = useState('');

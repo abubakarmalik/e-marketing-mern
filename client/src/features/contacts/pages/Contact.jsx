@@ -1,4 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-hot-toast';
+import {
+  fetchCategories,
+  addCategory,
+  selectCategories,
+} from '../contactSlice';
 import TotalContacts from '../../../components/TotalContacts';
 import ActiveCard from '../../../components/ActiveCard';
 import WrongCard from '../../../components/WrongCard';
@@ -11,6 +18,13 @@ import Filters from '../../../components/shared/Filters';
 import UploadSheet from '../../../components/shared/UploadSheet';
 
 const Contact = () => {
+  const dispatch = useDispatch();
+  const categories = useSelector(selectCategories);
+
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
   const statusData = {
     contacts: {
       value: '2,345',
@@ -37,14 +51,24 @@ const Contact = () => {
     { id: 1, number: '03068824576', group: 'Office', status: 'Active' },
     { id: 2, number: '03068783212', group: 'Social', status: 'Inactive' },
     { id: 3, number: '03068783233', group: 'General', status: 'Active' },
+    { id: 4, number: '03048983343', group: 'Social', status: 'Active' },
+    { id: 5, number: '03444589741', group: 'Social', status: 'Active' },
+    { id: 6, number: '03114533981', group: 'Office', status: 'Inactive' },
+    { id: 7, number: '03227364324', group: 'Ofiice', status: 'Active' },
+    { id: 8, number: '03109836636', group: 'General', status: 'Active' },
+    { id: 9, number: '03214345356', group: 'Ofiice', status: 'Active' },
+    { id: 10, number: '03124869786', group: 'General', status: 'Active' },
   ];
 
-  const groupOptions = [
-    { value: 'All', label: 'All' },
-    { value: 'Social', label: 'Social' },
-    { value: 'Ofice', label: 'Office' },
-    { value: 'General', label: 'General' },
-  ];
+  const groupOptions = useMemo(
+    () =>
+      (categories || []).map((c) => ({
+        value: c.name,
+        label: c.name,
+      })),
+
+    [categories],
+  );
   // ---------------- UI state ----------------
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('All');
@@ -53,9 +77,17 @@ const Contact = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
 
-  const handleSaveCategory = async ({ name }) => {
-    setCategories((prev) => [...prev, name]);
-  };
+  const handleSaveCategory = ({ name }) =>
+    toast.promise(
+      dispatch(addCategory({ name }))
+        .unwrap()
+        .then(() => dispatch(fetchCategories())),
+      {
+        loading: 'Adding category…',
+        success: 'Category added!',
+        error: (e) => e || 'Failed to add category',
+      },
+    );
 
   // Optional: debounce query (250ms)
   const [debouncedQuery, setDebouncedQuery] = useState(query);
