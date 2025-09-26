@@ -5,6 +5,18 @@ import {
   fetchCategories,
   addCategory,
   selectCategories,
+  fetchContacts,
+  selectContacts,
+  selectContactsLoading,
+  addContact,
+  deleteContact,
+  updateContact,
+  selectContactsPage,
+  selectContactsLimit,
+  selectContactsTotal,
+  selectContactsFrom,
+  selectContactsTo,
+  selectContactsTotalPages,
 } from '../contactSlice';
 import TotalContacts from '../../../components/TotalContacts';
 import ActiveCard from '../../../components/ActiveCard';
@@ -20,24 +32,33 @@ import UploadSheet from '../../../components/shared/UploadSheet';
 const Contact = () => {
   const dispatch = useDispatch();
   const categories = useSelector(selectCategories);
+  const contacts = useSelector(selectContacts);
+  const contactsLoading = useSelector(selectContactsLoading);
+  const page = useSelector(selectContactsPage);
+  const limit = useSelector(selectContactsLimit);
+  const total = useSelector(selectContactsTotal);
+  const from = useSelector(selectContactsFrom);
+  const to = useSelector(selectContactsTo);
+  const totalPages = useSelector(selectContactsTotalPages);
 
   useEffect(() => {
     dispatch(fetchCategories());
-  }, [dispatch]);
+    dispatch(fetchContacts({ page, limit: 10 }));
+  }, [dispatch, page]);
 
   const statusData = {
     contacts: {
-      value: '2,345',
+      value: total,
       updated: new Date().toISOString(),
     },
     correct: {
       title: 'Active Contacts',
-      value: '1734',
+      value: 0,
       updated: new Date().toISOString(),
     },
     wrong: {
       title: 'Inactive Contacts',
-      value: 2345 - 1734,
+      value: 0,
       updated: new Date(Date.now() - 3600000).toISOString(),
     },
     process: {
@@ -47,23 +68,10 @@ const Contact = () => {
     },
   };
 
-  const allRows = [
-    { id: 1, number: '03068824576', group: 'Office', status: 'Active' },
-    { id: 2, number: '03068783212', group: 'Social', status: 'Inactive' },
-    { id: 3, number: '03068783233', group: 'General', status: 'Active' },
-    { id: 4, number: '03048983343', group: 'Social', status: 'Active' },
-    { id: 5, number: '03444589741', group: 'Social', status: 'Active' },
-    { id: 6, number: '03114533981', group: 'Office', status: 'Inactive' },
-    { id: 7, number: '03227364324', group: 'Ofiice', status: 'Active' },
-    { id: 8, number: '03109836636', group: 'General', status: 'Active' },
-    { id: 9, number: '03214345356', group: 'Ofiice', status: 'Active' },
-    { id: 10, number: '03124869786', group: 'General', status: 'Active' },
-  ];
-
   const groupOptions = useMemo(
     () =>
       (categories || []).map((c) => ({
-        value: c.name,
+        value: c._id,
         label: c.name,
       })),
 
@@ -71,10 +79,12 @@ const Contact = () => {
   );
   // ---------------- UI state ----------------
   const [query, setQuery] = useState('');
-  const [group, setGroup] = useState('All');
-  const [status, setStatus] = useState('All');
-  const [rows, setRows] = useState(allRows);
+  const [group, setGroup] = useState('All'); // holds categoryId or 'All'
+  const [status, setStatus] = useState('All'); // 'All' | 'Active' | 'Inactive'
+  // const [rows, setRows] = useState(allRows);
+  const rows = contacts || [];
   const [addOpen, setAddOpen] = useState(false);
+  const [editingRow, setEditingRow] = useState(null);
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
 
   const handleSaveCategory = ({ name }) =>
@@ -96,27 +106,81 @@ const Contact = () => {
     return () => clearTimeout(t);
   }, [query]);
 
-  const handleSaveContact = async ({ number, group, status }) => {
-    setRows((prev) => [{ id: Date.now(), number, group, status }, ...prev]);
+  // Save handler works for both ADD and EDIT based on presence of id
+  const handleSaveContact = async ({ id, number, category, status }) => {
+    // status is boolean from modal
+    if (id) {
+      // UPDATE
+
+      return toast.promise(
+        dispatch(updateContact({ id, number, category, status }))
+          .unwrap()
+          .then(() => dispatch(fetchContacts({ page, limit }))),
+        {
+          loading: 'Updating contact…',
+          success: 'Contact updated!',
+          error: (e) => e || 'Failed to update contact',
+        },
+      );
+    }
+    // ADD
+    return toast.promise(
+      dispatch(addContact({ number, category }))
+        .unwrap()
+        .then(() => dispatch(fetchContacts({ page: 1, limit }))), // after add, go to first page
+      {
+        loading: 'Saving contact…',
+        success: 'Contact added!',
+        error: (e) => e || 'Failed to add contact',
+      },
+    );
   };
+
+  // ...delete contact:
+  const handleDelete = (row) =>
+    toast.promise(
+      dispatch(deleteContact(row.id))
+        .unwrap()
+        .then(() => dispatch(fetchContacts({ page, limit }))),
+      {
+        loading: 'Deleting…',
+        success: 'Contact deleted',
+        error: (e) => e || 'Failed to delete contact',
+      },
+    );
+
+  //  name lookup for rendering (id -> name)
+  const categoryNameById = useMemo(() => {
+    const m = {};
+    (categories || []).forEach((c) => {
+      m[c._id] = c.name;
+    });
+    return m;
+  }, [categories]);
 
   // ---------------- Filtering ----------------
   const filteredRows = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
 
-    return allRows.filter((r) => {
+    return rows.filter((r) => {
+      const statusStr = r.statusBool ? 'active' : 'inactive';
+      const groupName = r.categoryName || categoryNameById[r.categoryId] || '';
       const matchQuery =
         !q ||
-        r.number.toLowerCase().includes(q) ||
-        (r.group ?? '').toLowerCase().includes(q) ||
-        (r.status ?? '').toLowerCase().includes(q);
+        r.number?.toLowerCase?.().includes(q) ||
+        groupName.toLowerCase().includes(q) ||
+        statusStr.includes(q);
 
-      const matchGroup = group === 'All' || r.group === group;
-      const matchStatus = status === 'All' || r.status === status;
+      // filter by category _id
+      const matchGroup = group === 'All' || r.categoryId === group;
+      // filter by boolean status
+      const matchStatus =
+        status === 'All' ||
+        (status === 'Active' ? r.statusBool === true : r.statusBool === false);
 
       return matchQuery && matchGroup && matchStatus;
     });
-  }, [allRows, debouncedQuery, group, status]);
+  }, [rows, debouncedQuery, group, status, categoryNameById]);
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-4">
@@ -138,16 +202,50 @@ const Contact = () => {
           onGroupChange={setGroup}
           status={status}
           onStatusChange={setStatus}
+          groupOptions={[{ value: 'All', label: 'All' }, ...groupOptions]}
         />
       </div>
       <div className="flex flex-row gap-2">
         <div className="basis-1/2 bg-white p-4">
-          <ContactsTable
-            rows={filteredRows}
-            onEdit={(row) => console.log('Edit', row)}
-            onDelete={(row) => console.log('Delete', row)}
-          />
-          ;
+          {contactsLoading ? (
+            <div className="p-6 text-sm text-gray-500">Loading contacts…</div>
+          ) : (
+            <ContactsTable
+              rows={filteredRows.map((r) => ({
+                ...r,
+                group: r.categoryName || categoryNameById[r.categoryId] || '-',
+                status: r.statusBool ? 'Active' : 'Inactive',
+              }))}
+              onEdit={(row) => {
+                // prepare initial values for modal
+                setEditingRow({
+                  id: row.id,
+                  number: row.number,
+                  category: row.categoryId, // _id
+                  status: row.statusBool, // boolean
+                });
+                setAddOpen(true);
+              }}
+              onDelete={handleDelete}
+              page={page}
+              total={total}
+              pageSize={limit}
+              from={from}
+              to={to}
+              totalPages={totalPages}
+              onPrev={() =>
+                dispatch(fetchContacts({ page: Math.max(1, page - 1), limit }))
+              }
+              onNext={() =>
+                dispatch(
+                  fetchContacts({
+                    page: Math.min(page + 1, totalPages),
+                    limit,
+                  }),
+                )
+              }
+            />
+          )}
         </div>
         <div className="basis-1/2 bg-white p-4">
           <UploadSheet />
@@ -155,9 +253,15 @@ const Contact = () => {
       </div>
       <AddContactModal
         open={addOpen}
-        onClose={() => setAddOpen(false)}
+        onClose={() => {
+          setAddOpen(false);
+          setEditingRow(null);
+        }}
         onSave={handleSaveContact}
         groups={groupOptions}
+        initialValues={editingRow || undefined}
+        title={editingRow ? 'Edit Contact' : 'Add Contact'}
+        submitLabel={editingRow ? 'Update' : 'Save'}
       />
       <AddCategoryModel
         open={addCategoryOpen}

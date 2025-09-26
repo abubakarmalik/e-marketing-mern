@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.get('/', requireAuth, getContacts);
 router.post('/add', requireAuth, validate(contactSchema), addContact);
-router.put('/update/:id', requireAuth, validate(contactSchema), updateContact);
+router.put('/update/:id', requireAuth, updateContact);
 router.delete('/delete/:id', requireAuth, deleteContact);
 
 module.exports = router;

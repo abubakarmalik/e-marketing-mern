@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Modal from '../../../components/shared/DynamicModel';
 
 const phoneRegex = /^03\d{9}$/;
@@ -7,26 +7,63 @@ export default function AddContactModal({
   open,
   onClose,
   onSave,
-  groups = [],
+  groups = [], // [{value: _id, label: name}]
+  initialValues, // { id, number, category(_id), status(boolean) }
+  title = 'Add Contact',
+  submitLabel = 'Save',
 }) {
   const [form, setForm] = useState({
-    group: groups[0]?.value ?? 'Office',
+    id: undefined,
+    category: groups[0]?.value ?? '',
     number: '',
+    status: true, // boolean
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
+  // Ensure current category is present as an option when editing
+  const normalizedGroups = useMemo(() => {
+    const base = groups ?? [];
+    if (
+      initialValues?.category &&
+      !base.some((g) => g.value === initialValues.category)
+    ) {
+      return [
+        { value: initialValues.category, label: 'Current Category' },
+        ...base,
+      ];
+    }
+    return base;
+  }, [groups, initialValues]);
+
   useEffect(() => {
     if (open) {
-      setForm({ group: groups[0]?.value ?? 'Office', number: '' });
+      if (initialValues) {
+        setForm({
+          id: initialValues.id,
+          category: initialValues.category ?? groups[0]?.value ?? '',
+          number: initialValues.number ?? '',
+          status:
+            typeof initialValues.status === 'boolean'
+              ? initialValues.status
+              : true,
+        });
+      } else {
+        setForm({
+          id: undefined,
+          category: groups[0]?.value ?? '',
+          number: '',
+          status: true,
+        });
+      }
       setErrors({});
       setSubmitting(false);
     }
-  }, [open, groups]);
+  }, [open, groups, initialValues]);
 
   const validate = () => {
     const e = {};
-    if (!form.group) e.group = 'Please select a group.';
+    if (!form.category) e.category = 'Please select a category.';
     if (!form.number.trim()) e.number = 'Number is required.';
     else if (!phoneRegex.test(form.number.trim()))
       e.number = 'Enter a valid phone number.';
@@ -39,11 +76,14 @@ export default function AddContactModal({
     if (!validate()) return;
     try {
       setSubmitting(true);
-      await onSave?.({
+      const payload = {
+        id: form.id,
         number: form.number.trim(),
-        group: form.group,
-        status: 'Active', // default; adjust if needed
-      });
+        category: form.category, // _id
+      };
+      // Only send status when editing
+      if (form.id) payload.status = form.status; // boolean
+      await onSave?.(payload);
       onClose?.();
     } finally {
       setSubmitting(false);
@@ -51,32 +91,36 @@ export default function AddContactModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Add Contact">
+    <Modal open={open} onClose={onClose} title={title}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Category */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Select Group
+            Select Category
           </label>
           <select
             className={`w-full px-3 py-2 rounded-lg border ${
-              errors.group
+              errors.category
                 ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-300'
                 : 'border-gray-300 focus:border-gray-500 focus:ring-gray-300'
             } bg-white outline-none ring-2 ring-transparent transition`}
-            value={form.group}
-            onChange={(e) => setForm((f) => ({ ...f, group: e.target.value }))}
+            value={form.category}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, category: e.target.value }))
+            }
           >
-            {groups.map((g) => (
+            {normalizedGroups.map((g) => (
               <option key={g.value} value={g.value}>
                 {g.label}
               </option>
             ))}
           </select>
-          {errors.group && (
-            <p className="mt-1 text-xs text-rose-600">{errors.group}</p>
+          {errors.category && (
+            <p className="mt-1 text-xs text-rose-600">{errors.category}</p>
           )}
         </div>
 
+        {/* Number */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Enter Number
@@ -115,6 +159,25 @@ export default function AddContactModal({
           )}
         </div>
 
+        {/* Status — only show when editing */}
+        {form.id ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-gray-300 bg-white outline-none ring-2 ring-transparent transition"
+              value={form.status ? 'active' : 'inactive'}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, status: e.target.value === 'active' }))
+              }
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        ) : null}
+
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
@@ -128,7 +191,7 @@ export default function AddContactModal({
             disabled={submitting}
             className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
           >
-            {submitting ? 'Saving...' : 'Save'}
+            {submitting ? 'Saving...' : submitLabel}
           </button>
         </div>
       </form>

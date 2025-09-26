@@ -9,13 +9,8 @@ const Filters = ({
   onGroupChange,
   status,
   onStatusChange,
+  groupOptions = [],
 }) => {
-  const groups = [
-    { value: 'All', label: 'All' },
-    { value: 'Social', label: 'Social' },
-    { value: 'Office', label: 'Office' },
-    { value: 'General', label: 'General' },
-  ];
   const statuses = [
     { value: 'All', label: 'All' },
     { value: 'Active', label: 'Active' },
@@ -29,7 +24,11 @@ const Filters = ({
         onChange={onQueryChange}
         placeholder="Search numbers by status, group and number..."
       />
-      <SelectOptions options={groups} value={group} onChange={onGroupChange} />
+      <SelectOptions
+        options={groupOptions}
+        value={group}
+        onChange={onGroupChange}
+      />
       <SelectOptions
         options={statuses}
         value={status}

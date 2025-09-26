@@ -1,15 +1,34 @@
 const Contact = require('../../models/contact.model');
 const Category = require('../../models/category.model');
 
-// get all contacts
-const getContacts = async (_req, res) => {
+// get all contacts (paginated)
+const getContacts = async (req, res) => {
   try {
-    const contacts = await Contact.find();
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+    const skip = (page - 1) * limit;
+
+    const [contacts, total] = await Promise.all([
+      Contact.find()
+        .sort({ createdAt: -1 }) // optional, but nice
+        .skip(skip)
+        .limit(limit),
+      Contact.countDocuments(),
+    ]);
+
     res.status(200).json({
       success: true,
       count: contacts.length,
       data: contacts,
       error: null,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        from: total === 0 ? 0 : skip + 1,
+        to: skip + contacts.length,
+      },
     });
   } catch (error) {
     res.status(500).json({

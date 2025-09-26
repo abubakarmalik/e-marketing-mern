@@ -65,6 +65,14 @@ export default function ContactsTable({
   rows = [],
   onEdit = () => {},
   onDelete = () => {},
+  page = 1,
+  total = 0,
+  pageSize = 10,
+  from = 0,
+  to = 0,
+  totalPages = Math.ceil(total / (pageSize || 10)), // optional prop
+  onPrev = () => {},
+  onNext = () => {},
 }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -133,12 +141,25 @@ export default function ContactsTable({
 
       {/* Footer (optional: simple pagination placeholder) */}
       <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 text-xs text-gray-500">
-        <span>Showing {rows.length} result(s)</span>
-        <div className="flex gap-2">
-          <button className="px-2.5 py-1 rounded-lg ring-1 ring-gray-200 hover:bg-gray-50">
+        <span>
+          {total > 0
+            ? `Showing ${from}–${to} of ${total}`
+            : `Showing 0 results`}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            className="px-2.5 py-1 rounded-lg ring-1 ring-gray-200 hover:bg-gray-50 disabled:opacity-50"
+            onClick={onPrev}
+            disabled={page <= 1}
+          >
             Previous
           </button>
-          <button className="px-2.5 py-1 rounded-lg ring-1 ring-gray-200 hover:bg-gray-50">
+          <span className="min-w-[4rem] text-center">Page {page}</span>
+          <button
+            className="px-2.5 py-1 rounded-lg ring-1 ring-gray-200 hover:bg-gray-50 disabled:opacity-50"
+            onClick={onNext}
+            disabled={page >= totalPages}
+          >
             Next
           </button>
         </div>
