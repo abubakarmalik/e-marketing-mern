@@ -45,12 +45,12 @@ export default function AddCategoryModel({ open, onClose, onSave }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Add Category">
+    <Modal open={open} onClose={onClose} title="Create Group">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Category Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category Name
+            Group Name
           </label>
           <input
             type="text"

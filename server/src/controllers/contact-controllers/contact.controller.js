@@ -1,5 +1,6 @@
 const Contact = require('../../models/contact.model');
 const Category = require('../../models/category.model');
+const { normalizeNumber } = require('../../utils/normalizeNumber');
 
 // get all contacts (paginated)
 const getContacts = async (req, res) => {
@@ -193,9 +194,155 @@ const deleteContact = async (req, res) => {
   }
 };
 
+// upload bulk contacts
+const bulkAddContacts = async (req, res) => {
+  try {
+    const { category, numbers } = req.body || {};
+    console.log(req.body);
+
+    if (!Array.isArray(numbers)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payload: 'numbers' must be an array",
+        data: null,
+        error: { code: 400, details: 'numbers must be an array' },
+      });
+    }
+
+    // ---- Category validation (same semantics as addContact) ----
+    const categoryId =
+      category && String(category).trim().length ? category : null;
+
+    if (categoryId) {
+      const categoryDoc = await Category.findById(categoryId).lean();
+      if (!categoryDoc) {
+        return res.status(400).json({
+          success: false,
+          message: 'Category not found',
+          data: null,
+          error: { code: 400, details: 'Invalid category _id' },
+        });
+      }
+      if (
+        categoryDoc.entityType !== 'contact' &&
+        categoryDoc.entityType !== 'both'
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'Category is not valid for contacts',
+          data: null,
+          error: { code: 400, details: `entityType=${categoryDoc.entityType}` },
+        });
+      }
+    }
+
+    // ---- Normalize + dedupe within upload; cap to 1000 valid entries ----
+    const LIMIT = 1000;
+    const seen = new Set();
+    const clean = [];
+    let skippedInvalid = 0;
+
+    for (const raw of numbers) {
+      const normalized = normalizeNumber(raw);
+      // Let schema do the strict 11-digit check.
+      // We still skip blatantly empty normalization results to save DB work.
+      if (!normalized) {
+        skippedInvalid++;
+        continue;
+      }
+      if (seen.has(normalized)) continue; // dedupe inside this payload
+      seen.add(normalized);
+      clean.push(normalized);
+      if (clean.length >= LIMIT) break; // apply server-side cap
+    }
+
+    if (clean.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No valid-looking numbers to insert after normalization',
+        data: {
+          insertedCount: 0,
+          insertedIds: [],
+          duplicatesInDB: [],
+          summary: {
+            totalReceived: numbers.length,
+            validAfterNormalize: 0,
+            validCapped: 0,
+            skippedInvalid,
+            skippedDuplicateInUpload: numbers.length - skippedInvalid - 0, // rough (schema will be final guard)
+            skippedDuplicateInDB: 0,
+            limitApplied: LIMIT,
+          },
+        },
+        error: null,
+      });
+    }
+
+    // ---- De-dupe vs DB in one query ----
+    const existing = await Contact.find({ number: { $in: clean } })
+      .select('number')
+      .lean();
+    const existingSet = new Set(existing.map((d) => d.number));
+
+    const toInsert = clean.filter((n) => !existingSet.has(n));
+    const duplicatesInDB = clean.filter((n) => existingSet.has(n));
+
+    // ---- Bulk insert; let schema enforce 11 digits + unique index ----
+    let insertedDocs = [];
+    if (toInsert.length > 0) {
+      try {
+        insertedDocs = await Contact.insertMany(
+          toInsert.map((number) => ({
+            number, // schema validates /^\d{11}$/
+            category: categoryId, // same semantics as single addContact
+            isActive: true, // default active (matches your model field name)
+          })),
+          { ordered: false }, // continue past duplicates/validation errors
+        );
+      } catch (e) {
+        // insertMany with { ordered:false } continues on errors.
+        // Some docs may still be inserted. We won’t fail the whole request.
+        // If needed, you can inspect e.writeErrors here.
+      }
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Bulk contacts processed',
+      data: {
+        insertedCount: insertedDocs.length,
+        insertedIds: insertedDocs.map((d) => d._id),
+        duplicatesInDB, // numbers that already existed
+        summary: {
+          totalReceived: numbers.length,
+          validAfterNormalize: clean.length,
+          validCapped: clean.length, // already capped above
+          inserted: insertedDocs.length,
+          skippedInvalid, // normalization yielded nothing (e.g., non-digits)
+          skippedDuplicateInUpload:
+            clean.length + skippedInvalid < numbers.length
+              ? numbers.length - (clean.length + skippedInvalid)
+              : 0,
+          skippedDuplicateInDB: duplicatesInDB.length,
+          limitApplied: LIMIT,
+        },
+      },
+      error: null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Bulk add failed',
+      data: null,
+      error: { code: 500, details: error.message },
+    });
+  }
+};
+
 module.exports = {
   getContacts,
   addContact,
   updateContact,
   deleteContact,
+  bulkAddContacts,
 };

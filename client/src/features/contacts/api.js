@@ -40,3 +40,10 @@ export const updateContactApi = async (id, payload) => {
   const { data } = await API.put(`/contact/update/${id}`, payload);
   return data; // { success, data, message?, error? }
 };
+
+// POST /contact/upload
+export const bulkUploadContactsApi = async (payload) => {
+  // payload: { category: <_id>, numbers: string[] }
+  const { data } = await API.post('/contact/upload', payload);
+  return data; // { success, message, data: { insertedCount, insertedIds, duplicatesInDB, summary }, error }
+};

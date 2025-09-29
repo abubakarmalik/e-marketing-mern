@@ -96,7 +96,7 @@ export default function AddContactModal({
         {/* Category */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Select Category
+            Select Group
           </label>
           <select
             className={`w-full px-3 py-2 rounded-lg border ${

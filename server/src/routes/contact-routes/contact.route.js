@@ -4,6 +4,7 @@ const {
   addContact,
   updateContact,
   deleteContact,
+  bulkAddContacts
 } = require('../../controllers/contact-controllers/contact.controller');
 const { contactSchema } = require('../../schemas/contact.schemas');
 const { validate } = require('../../middlewares/validateRequest');
@@ -15,5 +16,6 @@ router.get('/', requireAuth, getContacts);
 router.post('/add', requireAuth, validate(contactSchema), addContact);
 router.put('/update/:id', requireAuth, updateContact);
 router.delete('/delete/:id', requireAuth, deleteContact);
+router.post('/upload', requireAuth, bulkAddContacts )
 
 module.exports = router;

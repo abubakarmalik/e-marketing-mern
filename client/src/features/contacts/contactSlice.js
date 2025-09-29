@@ -6,6 +6,7 @@ import {
   addContactApi,
   deleteContactApi,
   updateContactApi,
+  bulkUploadContactsApi,
 } from './api';
 
 const initialState = {
@@ -27,6 +28,10 @@ const initialState = {
   totalPages: 0,
   from: 0,
   to: 0,
+  // uploads
+  lastImport: null, // server summary of the last upload
+  importing: false,
+  importError: null,
 };
 
 // GET
@@ -150,6 +155,22 @@ export const updateContact = createAsyncThunk(
   },
 );
 
+// BULK UPLOAD
+export const bulkUploadContacts = createAsyncThunk(
+  'contacts/bulkUpload',
+  async ({ category, numbers }, { rejectWithValue }) => {
+    try {
+      const res = await bulkUploadContactsApi({ category, numbers });
+      if (!res?.success) throw new Error(res?.message || 'Bulk upload failed');
+      return res.data; // { insertedCount, insertedIds, duplicatesInDB, summary }
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.message || err.message || 'Bulk upload failed',
+      );
+    }
+  },
+);
+
 const slice = createSlice({
   name: 'contacts',
   initialState,
@@ -267,8 +288,21 @@ const slice = createSlice({
           );
         }
       })
+      // --- uploadsContacts cases ---
       .addCase(updateContact.rejected, (s, a) => {
         s.contactsError = a.payload || 'Failed to update contact';
+      })
+      .addCase(bulkUploadContacts.pending, (s) => {
+        s.importing = true;
+        s.importError = null;
+      })
+      .addCase(bulkUploadContacts.fulfilled, (s, a) => {
+        s.importing = false;
+        s.lastImport = a.payload; // keep summary in store (optional for a details view)
+      })
+      .addCase(bulkUploadContacts.rejected, (s, a) => {
+        s.importing = false;
+        s.importError = a.payload || 'Bulk upload failed';
       });
   },
 });
