@@ -29,8 +29,8 @@ import AddContactModal from '../widgets/AddContactModal';
 import AddCategoryModel from '../../../components/shared/AddCategoryModel';
 import Filters from '../../../components/shared/Filters';
 import UploadFileModel from '../../../components/shared/UploadFileModel';
-import { parseContactsFile } from '../../../utils/parseContacts';
 import WhatsappForm from '../widgets/WhatsappForm';
+import ContactsTableSkeleton from '../widgets/ContactsTableSkeleton';
 
 const Contact = () => {
   const dispatch = useDispatch();
@@ -52,7 +52,6 @@ const Contact = () => {
   const [editingRow, setEditingRow] = useState(null);
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [importInfo, setImportInfo] = useState(null);
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -103,7 +102,7 @@ const Contact = () => {
         .unwrap()
         .then(() => dispatch(fetchCategories())),
       {
-        loading: 'Adding categoryâ€¦',
+        loading: 'Adding category…',
         success: 'Category added!',
         error: (e) => e || 'Failed to add category',
       },
@@ -127,7 +126,7 @@ const Contact = () => {
           .unwrap()
           .then(() => dispatch(fetchContacts({ page, limit }))),
         {
-          loading: 'Updating contactâ€¦',
+          loading: 'Updating contact…',
           success: 'Contact updated!',
           error: (e) => e || 'Failed to update contact',
         },
@@ -139,7 +138,7 @@ const Contact = () => {
         .unwrap()
         .then(() => dispatch(fetchContacts({ page: 1, limit }))), // after add, go to first page
       {
-        loading: 'Saving contactâ€¦',
+        loading: 'Saving contact…',
         success: 'Contact added!',
         error: (e) => e || 'Failed to add contact',
       },
@@ -153,12 +152,12 @@ const Contact = () => {
         .unwrap()
         .then(() => dispatch(fetchContacts({ page, limit }))),
       {
-        loading: 'Deletingâ€¦',
+        loading: 'Deleting contact…',
         success: 'Contact deleted',
         error: (e) => e || 'Failed to delete contact',
       },
     );
-  // â¬‡ï¸ updated main handler
+  // 🛠️ updated main handler
 
   const handleUploadConfirm = async (payload) => {
     // payload: { category, numbers }
@@ -181,7 +180,7 @@ const Contact = () => {
           return msg.trim();
         }),
       {
-        loading: 'Importing contactsâ€¦',
+        loading: 'Importing contacts…',
         success: (m) => m || 'Contacts imported!',
         error: (e) => e || 'Failed to import contacts',
       },
@@ -248,7 +247,7 @@ const Contact = () => {
       <div className="flex flex-row gap-2">
         <div className="basis-1/2 bg-white p-4">
           {contactsLoading ? (
-            <div className="p-6 text-sm text-gray-500">Loading contactsâ€¦</div>
+            <ContactsTableSkeleton />
           ) : (
             <ContactsTable
               rows={filteredRows.map((r) => ({

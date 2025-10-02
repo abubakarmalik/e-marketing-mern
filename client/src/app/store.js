@@ -3,6 +3,7 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import authReducer from '../features/auth/authSlice';
 import contactsReducer from '../features/contacts/contactSlice';
+import settingsReducer from '../features/settings/settingSlice';
 
 // Config for auth slice
 const authPersistConfig = {
@@ -19,6 +20,7 @@ const contactPersistConfig = {
 const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
   contacts: persistReducer(contactPersistConfig, contactsReducer),
+  settings: settingsReducer,
 
   // normal (not persisted)
   // other reducers...

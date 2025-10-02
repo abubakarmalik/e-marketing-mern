@@ -14,13 +14,13 @@ const tabs = [
     name: 'Contacts',
     icon: <img src={number} alt="Contacts" className="h-4 w-auto" />,
   },
+  // {
+  //   id: 3,
+  //   name: 'Emails',
+  //   icon: <img src={mail} alt="Emails" className="h-4 w-auto" />,
+  // },
   {
     id: 3,
-    name: 'Emails',
-    icon: <img src={mail} alt="Emails" className="h-4 w-auto" />,
-  },
-  {
-    id: 4,
     name: 'Settings',
     icon: <img src={user} alt="Settings" className="h-4 w-auto" />,
   },

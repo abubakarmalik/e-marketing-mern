@@ -10,7 +10,7 @@ import Setting from '../features/settings/pages/Setting';
 const tabPages = [
   <Dashboard key="dashboard" />,
   <Contact key="contacts" />,
-  <Email key="emails" />,
+  // <Email key="emails" />,
   <Setting key="settings" />,
 ];
 
